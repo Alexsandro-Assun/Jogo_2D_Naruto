@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -17,13 +18,19 @@ public class Canvas extends JPanel implements Runnable, KeyListener {
 
 	private Player player;
 	private Image fundo;
-	
+	private Image faceIcone;
+	private Tiro tiro;
+	private int x = 450;
 	
 	
 	public Canvas() {
 		ImageIcon referencia = new ImageIcon("res\\Background.png");
+		ImageIcon Icone = new ImageIcon("res\\Face.png");
+		
+		faceIcone = Icone.getImage();
 		fundo = referencia.getImage();
-
+		
+		Tiro.carregarImagens();
 		player = new Player();
 		
 		Thread gameLoop = new Thread(this);
@@ -41,6 +48,7 @@ public class Canvas extends JPanel implements Runnable, KeyListener {
 			repaint();
 				
 			dorme();
+			
 		}
 		
 	}
@@ -49,6 +57,13 @@ public class Canvas extends JPanel implements Runnable, KeyListener {
 	
 		player.atualizar();
 		
+		if(x > 0) {
+			x--;
+		}
+		
+		if(tiro != null) {
+			tiro.atualizar();
+		}
 	}
 	
 
@@ -60,12 +75,27 @@ public class Canvas extends JPanel implements Runnable, KeyListener {
 		Graphics2D g = (Graphics2D) g2.create();
 		
 		//desenhar o fundo
-		//g.setColor(Color.blue);
-		//g.fillRect(0, 0, 1294, 728);
 		g.drawImage(fundo,0,0,null);
+		g.drawImage(faceIcone,-30,-30,150,150,null);
+		
+		//barra de vida
+		g.setColor(new Color(0, 160, 0));
+		g.fillRect(75, 22, x, 25); // x, y da tela // x , y do tamanho 
+		g.setColor(Color.black);
+		g.drawRect(74, 21, 450,25);
+		g.setColor(Color.black);
+		g.drawRect(73, 22, 450,25);
+		
+		
+		g.setColor(Color.white);
+		g.setFont(new Font("Helvetica", Font.BOLD,20));
+		g.drawString("Naruto", 80 , 41);
 		
 		//desenhar o player
 		player.pintar(g);
+		
+		//desenhar tiro
+		//tiro.pintar(g);
 		
 	}
 
@@ -83,8 +113,7 @@ public class Canvas extends JPanel implements Runnable, KeyListener {
 	public void keyPressed(KeyEvent e) {
 		
 		if(e.getKeyCode() == KeyEvent.VK_W) {
-			player.setPulo();
-			
+			player.setPulo();			
 		}
 		
 		/*else if(e.getKeyCode() == KeyEvent.VK_S) {
@@ -99,12 +128,13 @@ public class Canvas extends JPanel implements Runnable, KeyListener {
 			player.setDirecao(1);
 		}
 		
-		else if(e.getKeyCode() == KeyEvent.VK_D) {
-			player.setDirecao(1);
-		}
-		
 		else if(e.getKeyCode() == KeyEvent.VK_SPACE) {
 			player.setVelocidade(10);
+		}
+		
+		else if(e.getKeyCode() == KeyEvent.VK_H) {
+		 //tiro = player.atira();
+			player.setDisparando();
 		}
 	}
 
@@ -115,12 +145,16 @@ public class Canvas extends JPanel implements Runnable, KeyListener {
 			player.setDirecao(0);
 		}
 		
-		/*if(e.getKeyCode() == KeyEvent.VK_W || e.getKeyCode() == KeyEvent.VK_S) {
+		if(e.getKeyCode() == KeyEvent.VK_W || e.getKeyCode() == KeyEvent.VK_S) {
 			player.setDirecao(0);
-		}*/
+		}
 		
 		if(e.getKeyCode() == KeyEvent.VK_SPACE) {
 			player.setVelocidade(3);
+		}
+		
+		if(e.getKeyCode() == KeyEvent.VK_H) {
+			player.setDirecao(0);
 		}
 		
 		

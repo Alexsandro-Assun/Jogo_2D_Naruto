@@ -10,10 +10,12 @@ public class Player {
 	private BufferedImage parado[];
 	private BufferedImage correndo[];
 	private BufferedImage pulando[];
+	private BufferedImage atirando[];
 
 	private int indiceImagemAtual;
 	private int indice;
 	private int indicePulando;
+	private int indiceA;
 
 	private float timer;
 	private int largura;
@@ -21,6 +23,9 @@ public class Player {
 	private int direcao;
 	private int ultimaDir;
 	private boolean pulo;
+	private boolean disparando;
+
+	private int alturaPulo;
 	private int posx;
 	private int posy;
 	private int velocidade;
@@ -32,21 +37,39 @@ public class Player {
 		indiceImagemAtual = 0;
 		indice = 0;
 		indicePulando = 0;
+		indiceA = 0;
 
 		parado = new BufferedImage[2];
 		correndo = new BufferedImage[3];
 		pulando = new BufferedImage[4];
+		atirando = new BufferedImage[4];
 
 		altura = 100;
 		largura = 100;
 
 		direcao = 0;
 		ultimaDir = 1;
+		disparando = false;
 		pulo = false;
+		alturaPulo = 4;
 		velocidade = 3;
 
 		posx = 0;
-		posy = 300;
+		posy = 350;
+		
+		//animação atirando
+		
+		for (int i = 0; i < 4; i++) {
+			try {
+
+				atirando[i] = ImageIO.read(new File("res/tiro " + (i + 1) + ".png"));
+
+			} catch (IOException e) {
+				System.out.println("Erro ao carregar as imagens de tiro");
+				e.printStackTrace();
+			}
+
+		}
 
 		// animação parado
 		for (int i = 0; i < 2; i++) {
@@ -94,6 +117,7 @@ public class Player {
 	public void atualizar() {
 		// atualiza a animação
 		timer++;
+		
 		if (pulo) {
 
 			if (timer >= 7) {
@@ -102,31 +126,43 @@ public class Player {
 					indicePulando = 0;
 					pulo = false;
 				}
-				System.out.println(indicePulando+" pulando ");
+				
 				timer = 0;
 			}
+			
+			//altura do pulo
 			if(indicePulando < 2) {
-				posy -= 4;
+				posy -= alturaPulo;
 			} else {
-				posy += 4;
+				posy += alturaPulo;
 			}
-		} else {
+			
+		} else  {
 
-			if (timer >= 10) {
+			if (timer >= 7) {
 
 				indiceImagemAtual++;
 				indice++;
-				indicePulando++;
-
+				
+				if(disparando) {
+					if(timer>=5) {
+						
+						indiceA++;
+						if(indiceA == 4) {
+							indiceA = 0;
+						}
+					
+					}
+					timer = 0;
+				}
+				
 				if (indiceImagemAtual == 2) {
 					indiceImagemAtual = 0;
 				}
 				if (indice == 3) {
 					indice = 0;
 				}
-				if (indicePulando == 4) {
-					indicePulando = 0;
-				}
+		
 				System.out.println(indiceImagemAtual);
 				timer = 0;
 			}
@@ -142,7 +178,7 @@ public class Player {
 
 	public void pintar(Graphics2D g) {
 		// parado pra frente
-		if (ultimaDir == 1 & d == 0) {
+		if (ultimaDir == 1 & d == 0 & !pulo) {
 			g.drawImage(parado[indiceImagemAtual], // imagens usadas
 				posx, posy, // x e y
 				posx + largura, posy + altura, // posição + tamanho da imagem
@@ -153,7 +189,7 @@ public class Player {
 		}
 		// parado pra trás
 
-		if (ultimaDir == -1 & d == 0) {
+		if (ultimaDir == -1 & d == 0 & !pulo) {
 			g.drawImage(parado[indiceImagemAtual],
 				posx, posy,
 				posx + largura, 
@@ -164,7 +200,7 @@ public class Player {
 
 		// andando pra frente
 
-		if (direcao == 1) {
+		if (direcao == 1 & !pulo) {
 			g.drawImage(correndo[indice], // imagens usadas
 				posx, posy, // x e y
 				posx + largura, posy + altura, // posição + tamanho da imagem
@@ -174,7 +210,7 @@ public class Player {
 		}
 		// andando pra trás
 
-		if (direcao == -1) {
+		if (direcao == -1 & !pulo) {
 			g.drawImage(correndo[indice],
 				posx, posy, 
 				posx + largura,
@@ -186,21 +222,17 @@ public class Player {
 		// pulando pra frente
 
 		if (pulo) {
-			
-			g.drawImage(pulando[indicePulando], // imagens usadas
-				posx, posy, // x e y
-				posx + largura, posy + altura, // posição + tamanho da imagem
-				0, 0, // canto da imagem original
-				pulando[indicePulando].getHeight(),
-				pulando[indicePulando].getWidth(), // tamanho da imagem
-				null);
-			
-		}
-		// pulando pra trás
-
-		if (pulo) {
-	
-			if (ultimaDir == -1) {
+			if(ultimaDir == 1) {
+				g.drawImage(pulando[indicePulando], // imagens usadas
+					posx, posy, // x e y
+					posx + largura, posy + altura, // posição + tamanho da imagem
+					0, 0, // canto da imagem original
+					pulando[indicePulando].getHeight(),
+					pulando[indicePulando].getWidth(), // tamanho da imagem
+					null);
+			} else {
+				
+				// pulando pra trás
 				g.drawImage(pulando[indicePulando],
 					posx, posy,
 					posx + largura,
@@ -208,10 +240,39 @@ public class Player {
 					pulando[indicePulando].getWidth(), 0,
 					0, pulando[indicePulando].getHeight(), null);
 			}
+		
+			
+		}
+		
+		//atirando frente
+		
+		
+		if (disparando & !pulo & d == 3) {
+			if(ultimaDir == 1) {
+				g.drawImage(atirando[indiceA], // imagens usadas
+					posx, posy, // x e y
+					posx + largura, posy + altura, // posição + tamanho da imagem
+					0, 0, // canto da imagem original
+					atirando[indiceA].getHeight(),
+					atirando[indiceA].getWidth(), // tamanho da imagem
+					null);
+			} else {
+				
+				// atirando pra trás
+				g.drawImage(atirando[indiceA],
+					posx, posy,
+					posx + largura,
+					posy + altura,
+					atirando[indiceA].getWidth(), 0,
+					0, atirando[indiceA].getHeight(), null);
+			}
+		
+			
+		}
 
 		}
 
-	}
+	
 
 	public void setDirecao(int dir) {
 
@@ -235,8 +296,23 @@ public class Player {
 		
 	}
 	
+	public Tiro atira(){
+		
+		Tiro tiro = new Tiro(posx, posy, ultimaDir);
+		return tiro;
+	}
+	
 	public void setVelocidade(int speed) {
 		this.velocidade = speed;
 	}
 
+	public void setDisparando() {
+		d = 3;
+		if(disparando == false) {
+			disparando = true;
+			timer = 0;
+			indiceA = 0;
+		} 
+		
+	}
 }
